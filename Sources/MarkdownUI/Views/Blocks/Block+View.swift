@@ -13,6 +13,9 @@ extension Block: View {
       ApplyBlockStyle(\.list, to: NumberedListView(tight: tight, start: start, items: items))
     case .codeBlock(let info, let content):
       ApplyBlockStyle(\.codeBlock, to: CodeBlockView(info: info, content: content))
+            .overlay(alignment: .topTrailing) {
+                CopyButton(content: content)
+            }
     case .htmlBlock(let content):
       ApplyBlockStyle(\.paragraph, to: HTMLBlockView(content: content))
     case .paragraph(let inlines):
@@ -39,3 +42,46 @@ extension Block: View {
     }
   }
 }
+
+struct CopyButton: View {
+    let content: String
+    @State var isCopied = false
+    var body: some View {
+        Button(action: {
+            withAnimation(.linear(duration: 0.1)) {
+                isCopied = true
+            }
+            copyCode(content)
+            Task {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                withAnimation(.linear(duration: 0.1)) {
+                    isCopied = false
+                }
+            }
+        }) {
+            Image(systemName: isCopied ? "checkmark.circle" : "doc.on.doc")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 14, height: 14)
+                .frame(width: 20, height: 20, alignment: .center)
+                .foregroundColor(.secondary)
+                .background(
+                    Color.black.opacity(0.5),
+                    in: RoundedRectangle(cornerRadius: 4, style: .circular)
+                )
+                .padding(4)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+#if canImport(AppKit)
+import AppKit
+func copyCode(_ code: String) {
+    let pasteboard = NSPasteboard.general
+    pasteboard.clearContents()
+    pasteboard.setString(code, forType: .string)
+}
+#else
+func copyCode(_: String) {}
+#endif
