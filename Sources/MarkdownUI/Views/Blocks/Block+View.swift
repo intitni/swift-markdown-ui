@@ -66,7 +66,7 @@ struct CopyButton: View {
                 .frame(width: 20, height: 20, alignment: .center)
                 .foregroundColor(.secondary)
                 .background(
-                    Color.black.opacity(0.5),
+                    .regularMaterial,
                     in: RoundedRectangle(cornerRadius: 4, style: .circular)
                 )
                 .padding(4)
